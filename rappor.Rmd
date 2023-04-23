@@ -1,0 +1,89 @@
+---
+title: "rapport"
+output: html_document
+date: "2023-04-22"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## R Markdown
+
+Ci-dessous la répartion du PIB autour du monde 
+
+```{r maps}
+library(ggplot2)
+library(tidyverse)
+library(mapdata)
+library(maps)
+library(dplyr)
+require(viridis)
+
+theme_set(
+  theme_void()
+)
+
+
+um <- read.csv("unicef_metadata.csv")
+
+colnames(um)[colnames(um)=="country"] <- "region"
+
+ui1 <- read.csv("unicef_indicator_1.csv")
+
+
+ui2 <- read.csv("unicef_indicator_2.csv")
+
+
+world_map <- map_data("world")
+ggplot(world_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill="lightgray", colour = "white")
+
+um_merged <- left_join(world_map,um,by=c("region"="region"))
+
+map1 <- ggplot(um_merged, aes(x=long, y=lat, group=group)) + geom_polygon(aes(fill=GDP.per.capita..constant.2015.US..),color='black')
+map1
+```
+
+## Including Plots
+
+Ci-dessous un barplot de la variable obs_value par genre
+
+```{r barplot}
+bar_chart<-ggplot(data=ui1, aes(x=sex, y=obs_value)) +
+  geom_bar(stat="identity",position=position_dodge(), fill="steelblue")+
+  theme_minimal()
+  
+bar <-bar_chart + guides (fill = guide_legend(ncol = 1))+
+  xlab("sex")+
+  ggtitle("obs_value by sex")+ theme(legend.position = "none")
+bar
+
+```
+```{r line}
+line_chart <- ggplot(um, aes(x=year, y=Population..total)) +
+  geom_line() + 
+  xlab("")
+line <- line_chart+ 
+  theme(
+    plot.margin = margin(1, 1, 1, 1, "cm"),
+    panel.background = element_rect(fill = "white"),
+    plot.background = element_rect(
+      fill = "grey90",
+      colour = "black"
+    )
+  )
+
+line
+
+```
+```{r scatter}
+um_2021 = subset(um, year == 2021)
+sorted_y <- sort(um_2021$Population..total, decreasing = TRUE)
+df_sorted <- um_2021[order(um_2021$Population..total, decreasing = TRUE), ]
+df_excluded <- df_sorted[-c(1, 2),]
+plot(x= df_excluded$Population..total,  y=df_excluded$GDP.per.capita..constant.2015.US.., xlab = "population", ylab = "gdp", main = "Scatter plot",
+     col = "red")
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
